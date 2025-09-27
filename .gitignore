@@ -1,0 +1,42 @@
+# Build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+/tmp/
+*.tmp
+*.log
+
+# Security scan outputs (keep for analysis but exclude from repo)
+scan-results-*.json
+security-report-*.html
+consolidated-security-report.html
+roi-analysis.json
+
+# Node modules (if any JS dependencies added)
+node_modules/
+
+# Python cache
+.pytest_cache/
+.coverage

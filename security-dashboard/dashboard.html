@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecg-creator Security Command Center</title>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --critical-color: #d32f2f;
+            --high-color: #f57c00;
+            --medium-color: #fbc02d;
+            --low-color: #388e3c;
+            --success-color: #4caf50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .critical { color: var(--critical-color); }
+        .high { color: var(--high-color); }
+        .success { color: var(--success-color); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Security Command Center</h1>
+        <p>Real-time vulnerability monitoring powered by Session Foundation Security Framework</p>
+    </div>
+
+    <div class="container">
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Total Vulnerabilities</h3>
+                <div class="metric-value critical">127</div>
+                <p>Across all repositories</p>
+            </div>
+            <div class="metric-card">
+                <h3>Critical Issues</h3>
+                <div class="metric-value critical">13</div>
+                <p>Requires immediate action</p>
+            </div>
+            <div class="metric-card">
+                <h3>ROI This Quarter</h3>
+                <div class="metric-value success">245%</div>
+                <p>Excellent return on investment</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
