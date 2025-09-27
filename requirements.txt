@@ -1,0 +1,83 @@
+# BelieversCommons Genesis Stack - Python Dependencies
+# ECG Charter Compliance Framework & Revenue Optimization
+
+# Web Framework
+flask==2.3.2
+gunicorn==21.2.0
+
+# Database & ORM
+psycopg2-binary==2.9.7
+sqlalchemy==2.0.19
+alembic==1.11.1
+
+# Redis & Caching
+redis==4.6.0
+hiredis==2.2.3
+
+# Blockchain Integration
+web3==6.8.0
+eth-account==0.9.0
+py-solc-x==1.12.0
+
+# Compliance & Security
+cryptography==41.0.3
+pyjwt==2.8.0
+bcrypt==4.0.1
+
+# Monitoring & Observability
+prometheus-client==0.17.1
+opentelemetry-api==1.19.0
+opentelemetry-sdk==1.19.0
+opentelemetry-exporter-prometheus==1.12.0rc1
+opentelemetry-instrumentation-flask==0.40b0
+opentelemetry-instrumentation-psycopg2==0.40b0
+opentelemetry-instrumentation-redis==0.40b0
+
+# Revenue Analytics
+pandas==2.0.3
+numpy==1.24.3
+matplotlib==3.7.2
+
+# Compliance Reporting
+jinja2==3.1.2
+reportlab==4.0.4
+xlsxwriter==3.1.2
+
+# API & HTTP
+requests==2.31.0
+httpx==0.24.1
+aiohttp==3.8.5
+
+# Validation & Serialization
+marshmallow==3.20.1
+cerberus==1.3.5
+pydantic==2.1.1
+
+# Background Tasks
+celery==5.3.1
+kombu==5.3.1
+
+# Logging
+structlog==23.1.0
+python-json-logger==2.0.7
+
+# Configuration
+python-dotenv==1.0.0
+pyyaml==6.0.1
+
+# Development & Testing
+pytest==7.4.0
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+black==23.7.0
+flake8==6.0.0
+mypy==1.5.1
+
+# DPDPA 2023 Compliance
+privacy-tools==1.2.0
+data-anonymization==2.1.0
+
+# ECG Charter Specific
+governance-framework==1.0.0
+audit-trail==2.0.0
+risk-assessment==1.5.0

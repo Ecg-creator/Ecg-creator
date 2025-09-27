@@ -1,0 +1,203 @@
+# Prometheus Configuration for Genesis Stack
+# BelieversCommons Revenue Optimization Monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'believers-commons-genesis'
+    environment: 'production'
+    revenue_target: '370000000' # ₹3.7Cr
+
+# Revenue and compliance alerting rules
+rule_files:
+  - "revenue_alerts.yml"
+  - "compliance_alerts.yml"
+  - "performance_alerts.yml"
+
+# Alert manager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Scrape configurations
+scrape_configs:
+  # Genesis Stack Core Services
+  - job_name: 'genesis-api'
+    static_configs:
+      - targets: ['genesis-api:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    params:
+      revenue_tracking: ['enabled']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: genesis_component
+        replacement: 'empire'
+
+  - job_name: 'riveros-api'
+    static_configs:
+      - targets: ['riveros-api:8081']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    params:
+      revenue_share: ['85:15']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: genesis_component
+        replacement: 'river'
+
+  - job_name: 'synergizeos-api'
+    static_configs:
+      - targets: ['synergizeos-api:8082']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    params:
+      compliance_mode: ['automated']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: genesis_component
+        replacement: 'synergize'
+
+  # Compliance Framework
+  - job_name: 'ecg-compliance'
+    static_configs:
+      - targets: ['ecg-compliance:8083']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    params:
+      ecg_charter: ['Article-2.1,Article-4']
+      dpdpa_2023: ['enabled']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service_type
+        replacement: 'compliance'
+
+  # MAHDI Ruby Sandbox
+  - job_name: 'mahdi-playground'
+    static_configs:
+      - targets: ['mahdi-playground:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    params:
+      monetization: ['premium']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service_type
+        replacement: 'sandbox'
+
+  # Infrastructure Services
+  - job_name: 'postgresql-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: database
+        replacement: 'genesis_ledger'
+
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: cache_layer
+        replacement: 'genesis_cache'
+
+  - job_name: 'nginx-exporter'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 15s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: proxy_layer
+        replacement: 'genesis_proxy'
+
+  # Node and container metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Blockchain and multi-sig monitoring
+  - job_name: 'blockchain-metrics'
+    static_configs:
+      - targets: ['multi-sig-safe:8084']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+    params:
+      safe_threshold: ['3']
+      safe_owners: ['5']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: blockchain_service
+        replacement: 'multi_sig_safe'
+
+  # Revenue stream monitoring
+  - job_name: 'revenue-tracking'
+    static_configs:
+      - targets: ['genesis-api:8080']
+    metrics_path: '/api/v1/revenue/metrics'
+    scrape_interval: 60s
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: revenue_component
+        replacement: 'consolidated'
+
+  # Cloudflare security metrics
+  - job_name: 'cloudflare-security'
+    static_configs:
+      - targets: ['cloudflare-security:8085']
+    metrics_path: '/metrics'
+    scrape_interval: 300s # 5 minutes for external API
+    params:
+      security_premium: ['enabled']
+      waf_protection: ['enabled']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: security_layer
+        replacement: 'cloudflare'
+
+# Storage configuration for long-term retention
+storage:
+  tsdb:
+    retention.time: 365d # 1 year retention for revenue analytics
+    retention.size: 50GB
+    
+# Remote write for external analytics (optional)
+# remote_write:
+#   - url: "https://analytics.believers-commons.org/prometheus/write"
+#     basic_auth:
+#       username: genesis_stack
+#       password_file: /etc/prometheus/remote_write_password
+
+# Global recording rules for revenue optimization
+- name: revenue_optimization.rules
+  interval: 60s
+  rules:
+    - record: genesis:revenue_per_minute
+      expr: rate(genesis_revenue_total[1m])
+    
+    - record: genesis:compliance_score
+      expr: avg(genesis_compliance_percentage) by (component)
+    
+    - record: genesis:performance_sla
+      expr: avg(genesis_response_time_seconds) by (service) < 0.5
+    
+    - record: genesis:member_growth_rate
+      expr: rate(genesis_member_count_total[1h])
+    
+    - record: genesis:annual_revenue_projection
+      expr: genesis:revenue_per_minute * 60 * 24 * 365
