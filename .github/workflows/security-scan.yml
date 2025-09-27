@@ -1,0 +1,208 @@
+name: Security Vulnerability Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      target_repositories:
+        description: 'Comma-separated list of repositories to scan (default: all)'
+        required: false
+        default: 'Ecg-creator/vercel,Ecg-creator/DigitalMe,Ecg-creator/SynergyzeGovernance,Believers-common-group/The-believers-lobby'
+
+env:
+  VULNERABILITY_DB_PATH: './vulnerability-database/data/session-foundation-vulnerabilities.json'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repository: 
+          - 'Ecg-creator/vercel'
+          - 'Ecg-creator/DigitalMe'
+          - 'Ecg-creator/SynergyzeGovernance'
+          - 'Believers-common-group/The-believers-lobby'
+      fail-fast: false
+    
+    steps:
+    - name: Checkout vulnerability database
+      uses: actions/checkout@v4
+      with:
+        path: vuln-db
+    
+    - name: Checkout target repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ matrix.repository }}
+        path: target-repo
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests pathlib
+    
+    - name: Run security scan
+      id: scan
+      run: |
+        cd vuln-db
+        python vulnerability-database/scripts/security_scanner.py \
+          --vulnerability-db "$VULNERABILITY_DB_PATH" \
+          --repo-path "../target-repo" \
+          --repo-name "${{ matrix.repository }}" \
+          --output-format json \
+          --output-file "../scan-results-${{ matrix.repository }}.json"
+      continue-on-error: true
+    
+    - name: Generate HTML report
+      if: always()
+      run: |
+        cd vuln-db
+        python vulnerability-database/scripts/security_scanner.py \
+          --vulnerability-db "$VULNERABILITY_DB_PATH" \
+          --repo-path "../target-repo" \
+          --repo-name "${{ matrix.repository }}" \
+          --output-format html \
+          --output-file "../security-report-${{ matrix.repository }}.html"
+    
+    - name: Upload scan results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-scan-results-${{ matrix.repository }}
+        path: |
+          scan-results-*.json
+          security-report-*.html
+        retention-days: 30
+    
+    - name: Create security issue
+      if: steps.scan.outcome == 'failure'
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          const repoName = '${{ matrix.repository }}';
+          const resultsFile = `scan-results-${repoName}.json`;
+          
+          if (fs.existsSync(resultsFile)) {
+            const scanResults = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));
+            const totalIssues = scanResults[0]?.total_issues || 0;
+            const criticalIssues = scanResults[0]?.severity_counts?.critical || 0;
+            const highIssues = scanResults[0]?.severity_counts?.high || 0;
+            
+            if (totalIssues > 0) {
+              const title = `🚨 Security vulnerabilities detected in ${repoName}`;
+              const body = `
+              ## Security Scan Results
+              
+              **Repository:** ${repoName}
+              **Scan Date:** ${new Date().toISOString()}
+              **Total Issues:** ${totalIssues}
+              
+              ### Severity Breakdown
+              - 🔴 Critical: ${criticalIssues}
+              - 🟠 High: ${highIssues}
+              - 🟡 Medium: ${scanResults[0]?.severity_counts?.medium || 0}
+              - 🟢 Low: ${scanResults[0]?.severity_counts?.low || 0}
+              
+              ### Compliance Impact
+              **Standards Affected:** ${scanResults[0]?.compliance_impact?.standards?.join(', ') || 'None'}
+              **Risk Score:** ${scanResults[0]?.compliance_impact?.max_risk_score || 0}/10
+              
+              ### Action Required
+              ${criticalIssues > 0 ? '⚠️ **CRITICAL:** Immediate action required for critical vulnerabilities.' : ''}
+              ${highIssues > 0 ? '⚠️ **HIGH:** Prompt action required for high-severity vulnerabilities.' : ''}
+              
+              Please review the detailed scan report in the workflow artifacts.
+              `;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['security', 'vulnerability', 'audit']
+              });
+            }
+          }
+
+  consolidate-results:
+    needs: security-scan
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Download all scan results
+      uses: actions/download-artifact@v3
+      with:
+        path: scan-results
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Generate consolidated report
+      run: |
+        python vulnerability-database/scripts/generate_consolidated_report.py \
+          --results-dir scan-results \
+          --output consolidated-security-report.html
+      continue-on-error: true
+    
+    - name: Upload consolidated report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: consolidated-security-report
+        path: consolidated-security-report.html
+        retention-days: 90
+
+  profit-analysis:
+    needs: consolidate-results
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Download consolidated results
+      uses: actions/download-artifact@v3
+      with:
+        name: consolidated-security-report
+        path: reports
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Calculate ROI metrics
+      run: |
+        python vulnerability-database/scripts/roi_calculator.py \
+          --scan-results reports \
+          --output roi-analysis.json
+      continue-on-error: true
+    
+    - name: Upload ROI analysis
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: roi-analysis
+        path: roi-analysis.json
+        retention-days: 90
