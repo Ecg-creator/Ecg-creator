@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: believers-commons
+  labels:
+    name: believers-commons
+    genesis-stack: "enabled"
+    revenue-target: "370000000"
+    compliance-framework: "ecg-charter"
+  annotations:
+    kubernetes.io/managed-by: "genesis-stack"
+    revenue-optimization.believers-commons.org/annual-target: "₹3.7Cr"
+    compliance.believers-commons.org/dpdpa-2023: "enabled"
+    security.believers-commons.org/cloudflare: "premium"

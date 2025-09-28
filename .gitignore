@@ -1,0 +1,115 @@
+# BelieversCommons Genesis Stack - Git Ignore Configuration
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ruby dependencies
+.bundle/
+vendor/bundle
+.byebug_history
+.rspec
+
+# Python dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log
+log/
+*.log.*
+
+# Database
+*.sqlite3
+*.db
+.env.local
+.env.production
+
+# Secrets (keep template files, exclude actual secrets)
+secrets/*.txt
+!secrets/.gitkeep
+*.pem
+*.key
+*.crt
+!nginx/ssl/.gitkeep
+
+# Revenue analytics data
+revenue-data/
+analytics-exports/
+compliance-reports/*.pdf
+compliance-reports/*.xlsx
+
+# Development
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+dist/
+build/
+*.tar.gz
+*.zip
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Monitoring data
+prometheus_data/
+grafana_data/
+monitoring-exports/
+
+# Blockchain private keys
+blockchain/keys/
+*.private
+*.mnemonic
+
+# Coverage reports
+coverage/
+.nyc_output/
+.coverage
+htmlcov/
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Local environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Genesis Stack specific
+genesis_cache/
+mahdi_workspace/
+compliance_cache/
+revenue_cache/

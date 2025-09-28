@@ -1,0 +1,213 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genesis-stack
+  namespace: believers-commons
+  labels:
+    app: genesis-stack
+    component: core
+    version: v1.0.0
+    revenue-stream: "primary"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: genesis-stack
+  template:
+    metadata:
+      labels:
+        app: genesis-stack
+        component: core
+        genesis-mode: "empire"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+        revenue-optimization.believers-commons.org/enabled: "true"
+    spec:
+      serviceAccountName: genesis-stack
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: genesis-api
+        image: believers-commons/genesis-stack:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: GENESIS_MODE
+          value: "empire"
+        - name: REVENUE_TARGET
+          value: "370000000"
+        - name: ECG_COMPLIANCE
+          value: "enabled"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: genesis-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: genesis-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+          readOnly: true
+        - name: logs-volume
+          mountPath: /var/log/genesis
+      volumes:
+      - name: config-volume
+        configMap:
+          name: genesis-config
+      - name: logs-volume
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: genesis-stack-service
+  namespace: believers-commons
+  labels:
+    app: genesis-stack
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    revenue-optimization.believers-commons.org/service-tier: "premium"
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: 8080
+    protocol: TCP
+    name: https
+  selector:
+    app: genesis-stack
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: genesis-stack-hpa
+  namespace: believers-commons
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: genesis-stack
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: revenue_per_pod
+      target:
+        type: AverageValue
+        averageValue: "1000000" # ₹10L per pod
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: genesis-config
+  namespace: believers-commons
+data:
+  genesis.conf: |
+    # Genesis Stack Configuration
+    revenue_target: 370000000
+    compliance_framework: ecg_charter
+    blockchain_network: mainnet
+    multi_sig_threshold: 3
+    multi_sig_owners: 5
+    
+    # Revenue Streams
+    membership_nft_fee: 50000000
+    reit_dao_management: 120000000
+    mahdi_licensing: 25000000
+    security_premium: 45000000
+    compliance_automation: 30000000
+    
+    # Security Settings
+    cloudflare_protection: enabled
+    waf_rules: premium
+    ddos_protection: enabled
+    
+    # Monitoring
+    prometheus_metrics: enabled
+    opentelemetry_tracing: enabled
+    revenue_analytics: enabled
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: genesis-secrets
+  namespace: believers-commons
+type: Opaque
+stringData:
+  database-url: "postgresql://genesis_admin:${DB_PASSWORD}@postgres:5432/genesis_ledger"
+  redis-url: "redis://redis:6379"
+  jwt-secret: "${JWT_SECRET}"
+  cloudflare-token: "${CLOUDFLARE_TOKEN}"
+  safe-private-key: "${SAFE_PRIVATE_KEY}"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: genesis-stack
+  namespace: believers-commons
+  annotations:
+    revenue-optimization.believers-commons.org/role: "core-service"
