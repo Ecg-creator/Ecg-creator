@@ -20,7 +20,7 @@ eth-account==0.9.0
 py-solc-x==1.12.0
 
 # Compliance & Security
-cryptography==41.0.3
+cryptography==44.0.1
 pyjwt==2.8.0
 bcrypt==4.0.1
 
