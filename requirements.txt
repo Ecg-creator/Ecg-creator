@@ -3,7 +3,7 @@
 
 # Web Framework
 flask==2.3.2
-gunicorn==21.2.0
+gunicorn==23.0.0
 
 # Database & ORM
 psycopg2-binary==2.9.7
