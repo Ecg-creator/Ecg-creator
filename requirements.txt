@@ -39,7 +39,7 @@ numpy==1.24.3
 matplotlib==3.7.2
 
 # Compliance Reporting
-jinja2==3.1.2
+jinja2==3.1.6
 reportlab==4.0.4
 xlsxwriter==3.1.2
 
